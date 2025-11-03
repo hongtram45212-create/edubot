@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🤖 Edubot — Learn + Quiz + Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-main: #f0fdfa; /* teal-50 */
+        --bg-card: #ffffff;
+        --bg-sidebar: #0f766e; /* teal-700 */
+        --text-main: #0d9488; /* teal-600 */
+        --text-muted: #64748b; /* slate-500 */
+        --primary: #2dd4bf; /* teal-400 */
+        --primary-dark: #14b8a6; /* teal-500 */
+        --accent: #5eead4; /* teal-300 */
+        --border: #ccfbf1; /* teal-100 */
+        --header-height: 64px;
+      }
+      body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-main);
+        color: var(--text-main);
+      }
+      
+      /* Custom scrollbar */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 8px; }
+      ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+      
+      /* Base Component Styles */
+      .prose {
+        color: var(--text-muted);
+      }
+      .prose h1, .prose h2, .prose h3, .prose h4 {
+        color: var(--text-main);
+      }
+      .card-style {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 16px rgba(45, 212, 191, 0.07);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 1.5rem;
+        border-top: 3px solid var(--primary);
+      }
+      .card-style:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(45, 212, 191, 0.1);
+      }
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px 0 rgba(0,0,0,0.05);
+      }
+      .btn-primary {
+        background-color: var(--primary);
+        color: white;
+      }
+      .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px 0 rgba(0,0,0,0.1);
+      }
+      .btn-secondary {
+        background-color: var(--bg-card);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+      }
+       .btn-secondary:hover {
+        background-color: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+
+      /* Custom Animations */
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      .animate-spin { animation: spin 1s linear infinite; }
+      @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+      @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+      @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      .animate-fade-in { animation: fade-in 0.5s ease-out backwards; }
+      
+      /* Main Header & Navigation */
+      .main-header {
+        background-color: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .dropdown {
+        position: relative;
+      }
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: white;
+        min-width: 220px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+        z-index: 1;
+        border-radius: 0.75rem;
+        padding: 0.5rem 0;
+        margin-top: 0.5rem;
+        border: 1px solid var(--border);
+        animation: fade-in 0.2s ease-out;
+      }
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+      
+      .mobile-nav-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(240, 253, 250, 0.98);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 99;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        animation: fade-in 0.3s ease-out forwards;
+      }
+      
+      /* Custom 3D Transform Utilities for Flashcard */
+      .perspective-1000 { perspective: 1000px; }
+      .transform-style-preserve-3d { transform-style: preserve-3d; }
+      .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+      .rotate-y-180 { transform: rotateY(180deg); }
+      
+      /* ===== START FARM GAME STYLES ===== */
+      #farm-game-wrapper {
+        --sky-1:#bde6ff; --sky-2:#dff8ff; --hill-1:#b7efc5; --hill-2:#9de0ad;
+        --grass-1:#c8facc; --grass-2:#aaf4bd; --glass:#ffffff90;
+        --text:#0b3b2e; --teal:#18b6a6; --teal-2:#0ea293;
+        --gold:#ffd166; --shadow:0 10px 28px rgba(0,0,0,.18);
+        width: 100%;
+        height: calc(100vh - var(--header-height) - 4rem);
+        font-family: 'Poppins', sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg,var(--sky-1),var(--sky-2));
+        overflow: hidden;
+        position: relative;
+        border-radius: 1.5rem;
+        box-shadow: 0 4px 16px rgba(45, 212, 191, 0.07);
+      }
+      #farm-game-wrapper * { box-sizing: border-box; }
+      #farm-game-wrapper .scene{position:absolute; inset:0;overflow:hidden;pointer-events:none}
+      #farm-game-wrapper .sky{position:absolute; inset:0;
+        background:linear-gradient(180deg,var(--sky-1) 0%, var(--sky-2) 65%, #fff6ce 100%);
+      }
+      #farm-game-wrapper .cloud{position:absolute; font-size:52px; opacity:.75; animation:farm-game-cloud 22s linear infinite}
+      #farm-game-wrapper .cloud:nth-child(1){left:-10%; top:8%}
+      #farm-game-wrapper .cloud:nth-child(2){left:-20%; top:20%; animation-duration:28s; opacity:.6}
+      #farm-game-wrapper .cloud:nth-child(3){left:-15%; top:35%; animation-duration:26s}
+      @keyframes farm-game-cloud{0%{transform:translateX(0)}100%{transform:translateX(120vw)}}
+      #farm-game-wrapper .hills{position:absolute; inset-x:-10%; bottom:18%; height:38%; filter:saturate(1.05);}
+      #farm-game-wrapper .hill{position:absolute; bottom:-8%; width:60vw; height:40vh; border-radius:50%; box-shadow:inset 0 28px 60px rgba(0,0,0,.08);}
+      #farm-game-wrapper .hill.a{left:0; background:var(--hill-1); transform:translateX(-6vw)}
+      #farm-game-wrapper .hill.b{right:-6vw; background:var(--hill-2)}
+      #farm-game-wrapper .grass{position:absolute; inset-x:-5%; bottom:0; height:22%;
+        background:repeating-linear-gradient(-12deg, rgba(46,204,113,.25) 0 10px, rgba(46,204,113,.15) 10px 20px),
+          linear-gradient(180deg, var(--grass-1), var(--grass-2));
+        mask-image:linear-gradient(to top, black 70%, transparent);
+        -webkit-mask-image:linear-gradient(to top, black 70%, transparent);
+      }
+      #farm-game-wrapper .menu{position:relative; z-index:2; height:100%; display:grid; place-items:center; padding:24px;}
+      #farm-game-wrapper .menu-wrap{width:min(1100px,94vw)}
+      #farm-game-wrapper .title{text-align:center; margin-bottom:8px; font-weight:800; font-size:clamp(26px,4vw,40px); text-shadow:0 2px 0 #fff;}
+      #farm-game-wrapper .sub{text-align:center; margin-bottom:16px; opacity:.85}
+      #farm-game-wrapper .grid{display:grid; grid-template-columns:1fr; gap:16px}
+      @media(min-width:860px){#farm-game-wrapper .grid{grid-template-columns:1fr 1fr}}
+      #farm-game-wrapper .card{
+        background:linear-gradient(180deg,#fff9,#fff7);
+        backdrop-filter:blur(10px);
+        border:1px solid #fff5; border-radius:22px;
+        padding:20px 18px; box-shadow:var(--shadow);
+        transition:transform .18s ease, box-shadow .18s ease;
+      }
+      #farm-game-wrapper .card:hover{transform:translateY(-4px); box-shadow:0 16px 34px rgba(0,0,0,.20)}
+      #farm-game-wrapper .emoji{font-size:64px; display:block; margin:2px auto 10px; filter:drop-shadow(0 10px 14px rgba(0,0,0,.18))}
+      #farm-game-wrapper .card h4{margin:6px 0 6px; font-size:20px}
+      #farm-game-wrapper .card p{margin:0 0 14px; opacity:.8; min-height:44px}
+      #farm-game-wrapper .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center}
+      #farm-game-wrapper .btn{
+        appearance:none; border:none; cursor:pointer; font-weight:800;
+        padding:10px 18px; border-radius:12px; color:white;
+        background:linear-gradient(90deg, var(--teal), var(--teal-2));
+        box-shadow:0 6px 18px rgba(24,182,166,.35);
+        transition:transform .1s ease, filter .2s ease;
+      }
+      #farm-game-wrapper .btn:active{transform:translateY(1px) scale(.98)}
+      #farm-game-wrapper .toggle{--w:64px; position:relative; width:var(--w); height:32px; border-radius:999px; cursor:pointer;
+        background:#d1fae5; box-shadow:inset 0 2px 6px rgba(0,0,0,.12);}
+      #farm-game-wrapper .toggle input{display:none}
+      #farm-game-wrapper .toggle .dot{position:absolute; top:4px; left:4px; width:24px; height:24px; border-radius:50%;
+        background:white; box-shadow:0 4px 10px rgba(0,0,0,.18); transition:left .18s ease;
+        display:grid; place-items:center; font-size:16px;}
+      #farm-game-wrapper .toggle input:checked + .dot{left:calc(100% - 28px)}
+      #farm-game-wrapper .game{position:absolute; inset:0;}
+      #farm-game-wrapper .backdrop{position:absolute; inset:0; overflow:hidden}
+      #farm-game-wrapper .backdrop .sky2{position:absolute; inset:0; background:linear-gradient(180deg,#c9efff,#eaffff 65%,#fff0c9 100%)}
+      #farm-game-wrapper .backdrop .tiles{position:absolute; inset:0;
+        background:repeating-linear-gradient(0deg,#d1fadf 0 14px,#bff7d3 14px 28px);
+        mask-image:linear-gradient(to top, transparent 0%, black 22%, black 78%, transparent 100%);
+        -webkit-mask-image:linear-gradient(to top, transparent 0%, black 22%, black 78%, transparent 100%);
+      }
+      #farm-game-wrapper .hud{position:absolute; left:50%; top:14px; transform:translateX(-50%);
+        display:flex; gap:12px; align-items:center; z-index: 10;
+        background:var(--glass); padding:8px 14px; border-radius:16px; border:1px solid #fff6;
+        box-shadow:0 6px 16px rgba(0,0,0,.18); backdrop-filter:blur(10px); font-weight:700;}
+      #farm-game-wrapper .level-tag{position:absolute; right:14px; top:14px; z-index: 10; background:#fff8; border:1px solid #fff6; padding:6px 10px; border-radius:10px; font-weight:700}
+      #farm-game-wrapper .game-emoji{position:absolute; font-size:44px; transform:translate(-50%,-50%); user-select:none; filter:drop-shadow(0 10px 14px rgba(0,0,0,.22));}
+      #farm-game-wrapper .farmer{transform:translate(-50%,-50%) rotateX(12deg)}
+      #farm-game-wrapper .drop{animation:farm-game-drop .22s ease-out}
+      @keyframes farm-game-drop{from{transform:translate(-50%,-50%) scale(.85); opacity:.6}to{transform:translate(-50%,-50%) scale(1); opacity:1}}
+      #farm-game-wrapper .overlay{position:absolute; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.18); backdrop-filter:blur(4px); z-index: 20;}
+      #farm-game-wrapper .panel{width:min(92vw,480px); text-align:center; background:#fff; border:2px solid var(--gold);
+        border-radius:20px; padding:22px; box-shadow:0 18px 40px rgba(0,0,0,.24); animation:farm-game-pop .24s ease both}
+      #farm-game-wrapper .panel h3{margin:0 0 8px}
+      #farm-game-wrapper .panel p{margin:0 0 12px}
+      @keyframes farm-game-pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+      /* ===== END FARM GAME STYLES ===== */
+
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
+    "express": "https://aistudiocdn.com/express@^5.1.0",
+    "cors": "https://aistudiocdn.com/cors@^2.8.5",
+    "node-fetch": "https://aistudiocdn.com/node-fetch@^3.3.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-[var(--bg-main)] text-[var(--text-main)]">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
